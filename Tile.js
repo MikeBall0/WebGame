@@ -1,4 +1,5 @@
 var Game = Game || {};
+
 Game.Tile = function(x, y, standable) {
 	Game.load.image("tile", "images/Tile.png");
 	this.x = x;
