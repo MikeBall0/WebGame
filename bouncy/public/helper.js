@@ -19,6 +19,9 @@ Game.Point = function(x, y) {
 Game.Point.prototype = {
     length: function() {
         return Math.sqrt(this.x * this.x + this.y * this.y);
+    },
+    copy: function() {
+        return new Game.Point(this.x, this.y);
     }
 };
 
@@ -36,16 +39,16 @@ Game.Rect.prototype = {
         return this.width * this.height;
     },
     top: function() {
-        return this.x;
-    },
-    bottom: function() {
-        return this.x + this.height;
-    },
-    left: function() {
         return this.y;
     },
+    bottom: function() {
+        return this.y + this.height;
+    },
+    left: function() {
+        return this.x;
+    },
     right: function() {
-        return this.y + this.width;
+        return this.x + this.width;
     }
 }
 

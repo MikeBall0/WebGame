@@ -1,0 +1,13 @@
+{
+    "playerStart" : {
+        "x" : 100,
+        "y" : 100
+    },
+    "ground" : 528,
+    "blocks" : [],
+    "items" : [],
+    "gravity" : 700,
+    "decayPercent" : 0.95,
+    "decayAbsolute" : 100,
+    "playerAcceleration" : 500
+}
