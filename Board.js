@@ -22,8 +22,8 @@ Game.Board.prototype = {
 		for (var i = 0; i < this.tiles.length; i ++) {
 			var imgCenter = this.tilePointToPixel(new Point(this.tiles[i].x,
 															this.tiles[i].y));
-			var imgX = imgCenter.x + origin.x;
-			var imgY = imgCenter.y + origin.y;
+			var imgX = imgCenter.x + origin.x - Game.Tile.WIDTH / 2;
+			var imgY = imgCenter.y + origin.y - Game.Tile.HEIGHT / 2;
 			ctx.drawImage(this.tiles[i].getImage(), imgX, imgY);
 		}
 	},
@@ -36,6 +36,9 @@ Game.Board.prototype = {
 	getBoardOrigin: function() {
 		return new Point(this.x, this.y + this.width * Game.Tile.HEIGHT / 2);
 	},
+	getBoardLocation: function() {
+		return new Point(this.x, this.y);
+	},
 	// returns the center of the tile relative to board origin
 	tilePointToPixel: function(point) {
 		return new Point(point.x * this.vx.x + point.y * this.vy.x + Game.Tile.WIDTH / 2,
@@ -46,8 +49,8 @@ Game.Board.prototype = {
 		var ny = point.y - this.width * Game.Tile.HEIGHT / 2;
 		var vx = this.vx;
 		var vy = this.vy;
-		var m = (ny * vx.x - nx * vx.y) / md;
-		var n = (nx - m * vy.x) / vx.x;
-		return new Point(Math.floor(n), Math.floor(m));
+		var n = (ny * vx.x - nx * vx.y) / this.md;
+		var m = (nx - n * vy.x) / vx.x;
+		return new Point(Math.floor(m), Math.floor(n));
 	}
 };

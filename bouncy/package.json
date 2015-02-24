@@ -1,0 +1,8 @@
+{
+    "name" : "Bouncy",
+    "main" : "index.js",
+    "private" : true,
+    "dependencies" : {
+        "express" : "3.4.8"
+    }
+}

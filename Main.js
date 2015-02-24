@@ -41,6 +41,7 @@ Game.Main.prototype = {
 	},
 	onMouseDown: function(event) {
 		var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+		console.log(Game.current.board.boardPointToTile(worldPoint.minus(Game.current.board.getBoardLocation())));
 	},
 	onMouseUp: function(event) {
 		var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));

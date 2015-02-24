@@ -12,6 +12,9 @@ Game.Point = function(x, y) {
 Game.Point.prototype = {
 	length: function() {
 		return Math.sqrt(this.x * this.x + this.y * this.y);
+	},
+	minus: function(other) {
+		return new Point(this.x - other.x, this.y - other.y);
 	}
 };
 
