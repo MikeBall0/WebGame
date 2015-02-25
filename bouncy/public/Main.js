@@ -16,11 +16,11 @@ Game.Main = function() {
 
     this.guy = new Game.Guy();
 
+    this.currentScreen = Game.Main.LOADING_SCREEN;
     this.currentLevelData = null;
-
     this.lastTickTime = 0;
     this.tick(0);
-    this.loadLevel("level1");
+    this.loadLevel(Game.levels[Game.currentLevel].name);
 };
 
 Game.Main.prototype = {
@@ -36,21 +36,33 @@ Game.Main.prototype = {
         requestAnimationFrame(Game.current.tick);
     },
     update: function(dt) {
-        if (dt > 0.5) dt = 0.5;
-        if (!this.loadingLevel) {
-            if (Game.isKeyDown[Game.SPACE]) {
-                this.restartCurrentLevel();
+        if (dt > 1/40) dt = 1/40;
+        switch (this.currentScreen) {
+            case Game.Main.GAME_SCREEN: {
+                if (Game.isKeyDown[Game.SPACE]) {
+                    this.restartCurrentLevel();
+                }
+                this.world.update(dt);
+                this.guy.update(dt);
+                break;
             }
-            this.guy.update(dt);
+            case Game.Main.LOADING_SCREEN: {
+                break;
+            }
         }
     },
     redraw: function() {
         this.ctx.clearRect(0, 0, Game.canvas.width, Game.canvas.height);
-        if (this.loadingLevel) {
-            this.ctx.drawImage(this.loadingImage, 0, 0);
-        } else {
-            this.world.draw(this.ctx);
-            this.guy.draw(this.ctx);
+        switch (this.currentScreen) {
+            case Game.Main.LOADING_SCREEN: {
+                this.ctx.drawImage(this.loadingImage, 0, 0);
+                break;
+            }
+            case Game.Main.GAME_SCREEN: {
+                this.world.draw(this.ctx);
+                this.guy.draw(this.ctx);
+                break;
+            }
         }
     },
     onKeyDown: function(event) {
@@ -60,24 +72,28 @@ Game.Main.prototype = {
         Game.isKeyDown[event.keyCode] = undefined;
     },
     loadLevel: function(level) {
-        this.loadingLevel = true;
+        this.currentScreen = Game.Main.LOADING_SCREEN;
         Game.load.data("level", "data/" + level + ".json", true, function() { 
             var levelObject = JSON.parse(Game.loaded.data["level"]);
             Game.current.startLevel(levelObject);
         });
     },
     startLevel: function(levelObject) {
-        this.loadingLevel = true;
+        this.currentScreen = Game.Main.LOADING_SCREEN;
         this.currentLevelData = levelObject;
         this.guy.reset();
         this.guy.position.x = levelObject.playerStart.x;
         this.guy.position.y = levelObject.playerStart.y;
         this.guy.acceleration = levelObject.playerAcceleration;
         this.world = new Game.World(levelObject, function() {
-            Game.current.loadingLevel = false;
+            Game.current.currentScreen = Game.Main.GAME_SCREEN;
         });
     },
     restartCurrentLevel: function(levelObject) {
         this.startLevel(this.currentLevelData);
     }
 };
+
+Game.Main.LOADING_SCREEN = "loading";
+Game.Main.MENU_SCREEN = "menu";
+Game.Main.GAME_SCREEN = "game";

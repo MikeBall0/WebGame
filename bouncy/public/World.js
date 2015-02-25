@@ -17,11 +17,22 @@ Game.World = function(worldObject, onassetsloaded) {
     this.gravity = worldObject.gravity;
     this.decayPercent = worldObject.decayPercent;
     this.decayAbsolute = worldObject.decayAbsolute;
+    this.tutorial = worldObject.tutorial;
 
+    if (this.tutorial === 1) {
+        Game.load.image("tutorial1_frame1", "images/tutorial/tutorial1_frame1.png");
+        Game.load.image("tutorial1_frame2", "images/tutorial/tutorial1_frame2.png");
+        Game.load.image("tutorial1_frame3", "images/tutorial/tutorial1_frame3.png");
+    }
+
+    this.animationTime = 0;
     this.worldComplete = false;
 };
 
 Game.World.prototype = {
+    update: function(dt) {
+        this.animationTime += dt;
+    },
     draw: function(ctx) {
         var cacheFillStyle = ctx.fillStyle;
         ctx.drawImage(Game.loaded.image[this.background], 0, 0);
@@ -36,6 +47,15 @@ Game.World.prototype = {
         ctx.fillStyle = cacheFillStyle;
         for (var item of this.items) {
             item.draw(ctx);
+        }
+
+        switch (this.tutorial) {
+            case 1: {
+                var tFrame = Math.floor(this.animationTime) % 4
+                if (tFrame == 0) tFrame = 2;
+                ctx.drawImage(Game.loaded.image["tutorial1_frame" + tFrame], 10, 150);
+                break;
+            }
         }
     },
     createItem: function(itemData) {

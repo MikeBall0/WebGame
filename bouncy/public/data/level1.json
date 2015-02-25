@@ -29,5 +29,6 @@
     "gravity" : 700,
     "decayPercent" : 0.95,
     "decayAbsolute" : 100,
-    "playerAcceleration" : 500
+    "playerAcceleration" : 500,
+    "tutorial" : 1
 }
