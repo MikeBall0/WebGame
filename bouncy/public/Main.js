@@ -11,21 +11,16 @@ Game.Main = function() {
     Game.current = this;
 
     this.loadingImage = document.getElementById("loading");
-    
+
     Game.World.ConstructPatterns();
 
     this.guy = new Game.Guy();
-    
-    // this.world = new Game.World();
-    this.loadingLevel = true;
+
     this.currentLevelData = null;
-    Game.load.data("level", "data/level1.json", true, function() { 
-        var levelObject = JSON.parse(Game.loaded.data["level"]);
-        Game.current.loadLevel(levelObject);
-    });
 
     this.lastTickTime = 0;
     this.tick(0);
+    this.loadLevel("level1");
 };
 
 Game.Main.prototype = {
@@ -41,16 +36,16 @@ Game.Main.prototype = {
         requestAnimationFrame(Game.current.tick);
     },
     update: function(dt) {
+        if (dt > 0.5) dt = 0.5;
         if (!this.loadingLevel) {
             if (Game.isKeyDown[Game.SPACE]) {
-                this.reloadCurrentLevel();
+                this.restartCurrentLevel();
             }
             this.guy.update(dt);
         }
     },
     redraw: function() {
         this.ctx.clearRect(0, 0, Game.canvas.width, Game.canvas.height);
-        // console.log(this.loadingLevel);
         if (this.loadingLevel) {
             this.ctx.drawImage(this.loadingImage, 0, 0);
         } else {
@@ -64,7 +59,14 @@ Game.Main.prototype = {
     onKeyUp: function(event) {
         Game.isKeyDown[event.keyCode] = undefined;
     },
-    loadLevel: function(levelObject) {
+    loadLevel: function(level) {
+        this.loadingLevel = true;
+        Game.load.data("level", "data/" + level + ".json", true, function() { 
+            var levelObject = JSON.parse(Game.loaded.data["level"]);
+            Game.current.startLevel(levelObject);
+        });
+    },
+    startLevel: function(levelObject) {
         this.loadingLevel = true;
         this.currentLevelData = levelObject;
         this.guy.reset();
@@ -75,7 +77,7 @@ Game.Main.prototype = {
             Game.current.loadingLevel = false;
         });
     },
-    reloadCurrentLevel: function(levelObject) {
-        this.loadLevel(this.currentLevelData);
+    restartCurrentLevel: function(levelObject) {
+        this.startLevel(this.currentLevelData);
     }
 };

@@ -10,10 +10,15 @@ Game.World = function(worldObject, onassetsloaded) {
     for (var block of worldObject.blocks) {
         this.blocks.push(new Rect(block.x, block.y, block.width, block.height));
     }
-    this.items = worldObject.items;
+    this.items = [];
+    for (var item of worldObject.items) {
+        this.items.push(this.createItem(item));
+    }
     this.gravity = worldObject.gravity;
     this.decayPercent = worldObject.decayPercent;
     this.decayAbsolute = worldObject.decayAbsolute;
+
+    this.worldComplete = false;
 };
 
 Game.World.prototype = {
@@ -25,11 +30,23 @@ Game.World.prototype = {
         } else {
             ctx.fillStyle = "#CE7100";
         }
-        for (var i = 0; i < this.blocks.length; i ++) {
-            var block = this.blocks[i];
+        for (var block of this.blocks) {
             ctx.fillRect(block.x, block.y, block.width, block.height);
         }
         ctx.fillStyle = cacheFillStyle;
+        for (var item of this.items) {
+            item.draw(ctx);
+        }
+    },
+    createItem: function(itemData) {
+        switch (itemData.type) {
+            case "flagpole": {
+                var flagpole = new Game.Flagpole();
+                flagpole.x = itemData.x;
+                flagpole.y = itemData.y;
+                return flagpole;
+            }
+        }
     }
 };
 

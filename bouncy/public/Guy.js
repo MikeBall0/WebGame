@@ -21,7 +21,8 @@ Game.Guy.prototype = {
         this.velocity.y = 0;
     },
     draw: function(ctx) {
-        ctx.drawImage(Game.loaded.image["guy"], this.position.x + this.bounds.x, this.position.y + this.bounds.y);
+        var guyImg = Game.loaded.image["guy"];
+        ctx.drawImage(guyImg, this.position.x - guyImg.width / 2, this.position.y + this.bounds.top() / 2 - guyImg.height / 2);
     },
     update: function(dt) {
         if (Game.isKeyDown[Game.RIGHT] || Game.isKeyDown[Game.LEFT]) {
@@ -54,10 +55,8 @@ Game.Guy.prototype = {
             for (var block of world.blocks) {
                 if (broadphaseBox.hitTest(block)) {
                     var blockColl = this.sweptTest(block, stepVelocity);
-                    console.log(blockColl);
                     if (blockColl.at < collision.at) {
                         collision = blockColl;
-                        console.log("replace");
                     }
                 }
             }
@@ -73,6 +72,7 @@ Game.Guy.prototype = {
                 }
             }
         }
+        this.interactWithWorldItems();
     },
     reflectXVelocity: function() {
         this.velocity.x *= -Game.current.world.decayPercent;  
@@ -117,7 +117,6 @@ Game.Guy.prototype = {
             collision.at = bottomCollision;
             collision.normal.y = -1;
         }
-        // console.log(bottomCollision);
         return collision;
     },
     getBroadphaseBox: function(stepVelocity) {
@@ -159,7 +158,6 @@ Game.Guy.prototype = {
         var entryTime = Math.max(entry.x, entry.y);
         var exitTime = Math.min(exit.x, exit.y);
 
-        console.log(entry);
         // no collision
         if (entryTime > exitTime ||
             (entry.x < 0 && entry.y < 0) ||
@@ -185,8 +183,19 @@ Game.Guy.prototype = {
                 }
             }
             collision.at = entryTime;
-            console.log(collision);
         }
         return collision;
+    },
+    interactWithWorldItems: function() {
+        var world = Game.current.world;
+        var guyBoundingBox = new Rect(this.left(), this.top(), this.bounds.width, this.bounds.height);
+        for (var item of world.items) {
+            if (item instanceof Game.Flagpole) {
+                if (!world.worldComplete && item.hitTest(guyBoundingBox)) {
+                    world.worldComplete = true;
+                    item.raise();
+                }
+            }
+        }
     }
 };

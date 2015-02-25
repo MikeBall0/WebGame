@@ -5,11 +5,11 @@ Game.loaded = {
     data: {}
 };
 
-Game.Preloader = function() {
+Game.Loader = function() {
     this.xhr = new XMLHttpRequest();
 };
 
-Game.Preloader.prototype = {
+Game.Loader.prototype = {
     image: function(name, source, force, onload) {
         if (Game.loaded.image[name] && !force) {
             if (onload) onload();
@@ -39,4 +39,4 @@ Game.Preloader.prototype = {
     }
 };
 
-Game.load = new Game.Preloader();
+Game.load = new Game.Loader();

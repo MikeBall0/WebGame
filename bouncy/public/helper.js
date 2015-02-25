@@ -66,7 +66,7 @@ Game.Rect.prototype = {
     intersects: function(other) {
         return !(this.left() >= other.right() ||
                  this.right() <= other.left() ||
-                 this.top >= other.bottom() ||
+                 this.top() >= other.bottom() ||
                  this.bottom() <= other.top());
     },
     hitTest: function(other) {
