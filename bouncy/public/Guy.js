@@ -46,38 +46,147 @@ Game.Guy.prototype = {
                 this.velocity.x = Math.min(-Game.Guy.MAX_X_SPEED, this.velocity.x * 0.8);
             }
         }
-        // newVelocity tracks velocity changes due to bounces
-        var newVelocity = this.velocity.copy();
-        // update position
-        var dx = this.velocity.x * dt;
-        var dy = this.velocity.y * dt;
-        // naively move the player horizontally, move horizontally first to be more forgiving with getting onto ledges
-        var nx = this.position.x + dx;
-        if (nx + this.bounds.left() <= Game.World.LEFT || nx + this.bounds.right() >= Game.World.RIGHT) {
-            newVelocity.x *= -world.decayPercent;
-            // reflect what's left of the horizontal velocity, adjusted
-            if (nx + this.bounds.left() <= Game.World.LEFT) {
-                nx = Game.World.LEFT + (nx + this.bounds.left() - Game.World.LEFT) * newVelocity.x / this.velocity.x - this.bounds.left();
-            } else if (nx + this.bounds.right() >= Game.World.RIGHT) {
-                nx = Game.World.RIGHT + (nx + this.bounds.right() - Game.World.RIGHT) * newVelocity.x / this.velocity.x - this.bounds.right();
+
+        while (dt > 0 && !this.dead) {
+            var stepVelocity = new Point(this.velocity.x * dt, this.velocity.y * dt);
+            var broadphaseBox = this.getBroadphaseBox(stepVelocity);
+            var collision = this.getWorldBoundsCollision(stepVelocity);
+            for (var block of world.blocks) {
+                if (broadphaseBox.hitTest(block)) {
+                    var blockColl = this.sweptTest(block, stepVelocity);
+                    console.log(blockColl);
+                    if (blockColl.at < collision.at) {
+                        collision = blockColl;
+                        console.log("replace");
+                    }
+                }
+            }
+            var stepTime = dt * collision.at;
+            this.position.x += this.velocity.x * stepTime;
+            this.position.y += this.velocity.y * stepTime;
+            dt -= stepTime;
+            if (collision.at < 1) {
+                if (collision.normal.x != 0) {
+                    this.reflectXVelocity();
+                } else if (collision.normal.y != 0) {
+                    this.reflectYVelocity();
+                }
             }
         }
-        // TODO: compare collisions against blocks
-        var ny = this.position.y + dy;
-        // deal with vertical collisions to be a 
-        if (ny >= world.ground) {
-            newVelocity.y = Math.max(0, this.velocity.y - world.decayAbsolute);
-            newVelocity.y *= -world.decayPercent;
-            // reflect what was left of the vertical velocity, adjusted
-            ny = world.ground + (ny - world.ground) * newVelocity.y / this.velocity.y;
-            if (newVelocity.y == 0) {
+    },
+    reflectXVelocity: function() {
+        this.velocity.x *= -Game.current.world.decayPercent;  
+    },
+    reflectYVelocity: function() {
+        if (this.velocity.y < 0) {
+            this.velocity.y *= -Game.current.world.decayPercent;
+        } else {
+            this.velocity.y -= Game.current.world.decayAbsolute;
+            this.velocity.y *= -Game.current.world.decayPercent;
+            if (this.velocity.y >= 0) {
                 this.dead = true;
             }
         }
-        // TODO: compare collisions against blocks
-        this.position.x = nx;
-        this.position.y = ny;
-        this.velocity = newVelocity;
-        // console.log(this.position);
+    },
+    left: function() {
+        return this.position.x + this.bounds.left();
+    },
+    right: function() {
+        return this.position.x + this.bounds.right();
+    },
+    top: function() {
+        return this.position.y + this.bounds.top();
+    },
+    bottom: function() {
+        return this.position.y + this.bounds.bottom();
+    },
+    getWorldBoundsCollision: function(stepVelocity) {
+        var collision = {at: 1, normal: new Point()};
+        var leftCollision = (Game.World.LEFT - this.left()) / stepVelocity.x;
+        var rightCollision = (Game.World.RIGHT - this.right()) / stepVelocity.x;
+        var bottomCollision = (Game.current.world.ground - this.bottom()) / stepVelocity.y;
+        if (leftCollision > 0 && leftCollision < collision.at) {
+            collision.at = leftCollision;
+            collision.normal.x = 1;
+        }
+        if (rightCollision > 0 && rightCollision < collision.at) {
+            collision.at = rightCollision;
+            collision.normal.x = -1;
+        }
+        if (bottomCollision > 0 && bottomCollision < collision.at) {
+            collision.at = bottomCollision;
+            collision.normal.y = -1;
+        }
+        // console.log(bottomCollision);
+        return collision;
+    },
+    getBroadphaseBox: function(stepVelocity) {
+        var startBox = new Rect(this.left(), this.top(), this.bounds.width, this.bounds.height);
+        var endBox = new Rect(this.left() + stepVelocity.x, this.top() + stepVelocity.y, this.bounds.width, this.bounds.height);
+        return startBox.union(endBox);
+    },
+    sweptTest: function(block, stepVelocity) {
+        var invEntry = new Point();
+        var invExit = new Point();
+        var left = this.left();
+        var right = this.right();
+        var top = this.top();
+        var bottom = this.bottom();
+        var v = stepVelocity.copy();
+        var collision = {at: 1.0, normal: new Point()};
+        // calculate the time of horizontal invEntry and invExit
+        if (v.x > 0) {
+            invEntry.x = block.x - right;
+            invExit.x = block.x + block.width - left;
+        } else {
+            invEntry.x = block.x + block.width - left;
+            invExit.x = block.x - right;
+        }
+        // calculate the time of vertical invEntry and invExit
+        if (v.y > 0) {
+            invEntry.y = block.y - bottom;
+            invExit.y = block.y + block.height - top;
+        } else {
+            invEntry.y = block.y + block.height - top;
+            invExit.y = block.y - bottom;
+        }
+
+        // invert the invEntry and invExit to find the real entry and exit
+        var entry = new Point(invEntry.x / v.x, invEntry.y / v.y);
+        var exit = new Point(invExit.x / v.x, invExit.y / v.y);
+
+        // entryTime is the latest x/y time, exit time is the earlies
+        var entryTime = Math.max(entry.x, entry.y);
+        var exitTime = Math.min(exit.x, exit.y);
+
+        console.log(entry);
+        // no collision
+        if (entryTime > exitTime ||
+            (entry.x < 0 && entry.y < 0) ||
+            entry.x > 1 || entry.y > 1)
+        {
+            return collision;
+        } else { // there was a collision, figure out where and on what surface
+            if (entry.x > entry.y) {
+                if (invEntry.x < 0) {
+                    collision.normal.x = 1;
+                    collision.normal.y = 0;
+                } else {
+                    collision.normal.x = -1;
+                    collision.normal.y = 0;
+                }
+            } else {
+                if (invEntry.y < 0) {
+                    collision.normal.x = 0;
+                    collision.normal.y = 1;
+                } else {
+                    collision.normal.x = 0;
+                    collision.normal.y = -1;
+                }
+            }
+            collision.at = entryTime;
+            console.log(collision);
+        }
+        return collision;
     }
 };

@@ -49,6 +49,33 @@ Game.Rect.prototype = {
     },
     right: function() {
         return this.x + this.width;
+    },
+    union: function(other) {
+        var left = Math.min(this.left(), other.left()); 
+        var right = Math.max(this.right(), other.right()); 
+        var top = Math.min(this.top(), other.top()); 
+        var bottom = Math.max(this.bottom(), other.bottom());
+        return new Rect(left, top, right - left, bottom - top);
+    },
+    contains: function(point) {
+        return this.left() < point.x &&
+               this.right() > point.x &&
+               this.top() < point.y &&
+               this.bottom() > point.y;
+    },
+    intersects: function(other) {
+        return !(this.left() >= other.right() ||
+                 this.right() <= other.left() ||
+                 this.top >= other.bottom() ||
+                 this.bottom() <= other.top());
+    },
+    hitTest: function(other) {
+        if (other instanceof Game.Point) {
+            return this.contains(other);
+        } else if (other instanceof Game.Rect) {
+            return this.intersects(other);
+        }
+        return false;
     }
 }
 

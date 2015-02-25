@@ -10,9 +10,10 @@ Game.Main = function() {
 
     Game.current = this;
 
-    Game.load.image("background", "images/background.png");
-    Game.load.image("loading", "images/loading.png");
+    this.loadingImage = document.getElementById("loading");
     
+    Game.World.ConstructPatterns();
+
     this.guy = new Game.Guy();
     
     // this.world = new Game.World();
@@ -21,7 +22,6 @@ Game.Main = function() {
     Game.load.data("level", "data/level1.json", true, function() { 
         var levelObject = JSON.parse(Game.loaded.data["level"]);
         Game.current.loadLevel(levelObject);
-        Game.current.loadingLevel = false;
     });
 
     this.lastTickTime = 0;
@@ -52,9 +52,9 @@ Game.Main.prototype = {
         this.ctx.clearRect(0, 0, Game.canvas.width, Game.canvas.height);
         // console.log(this.loadingLevel);
         if (this.loadingLevel) {
-            this.ctx.drawImage(Game.loaded.image["loading"], 0, 0);
+            this.ctx.drawImage(this.loadingImage, 0, 0);
         } else {
-            this.ctx.drawImage(Game.loaded.image["background"], 0, 0);
+            this.world.draw(this.ctx);
             this.guy.draw(this.ctx);
         }
     },
@@ -65,12 +65,15 @@ Game.Main.prototype = {
         Game.isKeyDown[event.keyCode] = undefined;
     },
     loadLevel: function(levelObject) {
+        this.loadingLevel = true;
         this.currentLevelData = levelObject;
         this.guy.reset();
         this.guy.position.x = levelObject.playerStart.x;
         this.guy.position.y = levelObject.playerStart.y;
         this.guy.acceleration = levelObject.playerAcceleration;
-        this.world = new Game.World(levelObject);
+        this.world = new Game.World(levelObject, function() {
+            Game.current.loadingLevel = false;
+        });
     },
     reloadCurrentLevel: function(levelObject) {
         this.loadLevel(this.currentLevelData);
