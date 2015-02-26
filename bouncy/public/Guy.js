@@ -2,6 +2,7 @@ var Game = Game || {};
 
 Game.Guy = function() {
     Game.load.image("guy", "images/guy.png");
+    Game.load.image("explodedBit", "images/explodedGuyBit.png"); // give the explode bits a hand with loading
     this.position = new Point();
     this.velocity = new Point();
     this.bounds = new Rect(-25, -50, 50, 50);
@@ -116,6 +117,9 @@ Game.Guy.prototype = {
     },
     bottom: function() {
         return this.position.y + this.bounds.bottom();
+    },
+    centerPoint: function() {
+        return new Point(this.position.x, this.position.y - this.bounds.height / 2);
     },
     getWorldBoundsCollision: function(stepVelocity) {
         var collision = {at: 1, normal: new Point()};
@@ -232,8 +236,8 @@ Game.Guy.prototype = {
             var ry = Game.lerp(Math.floor(i / 5), 0, 4, this.bounds.top() + 5, this.bounds.bottom() -5);
             bit.position.x = this.position.x + rx;
             bit.position.y = this.position.y + ry;
-            bit.velocity.x = this.velocity.x + rx * Game.lerp(Math.random(), 0, 1, -10, 10);
-            bit.velocity.y = this.velocity.y + (ry + this.bounds.height / 2) * Game.lerp(Math.random(), 0, 1, -10, 10);
+            bit.velocity.x = this.velocity.x + rx * Game.lerp(Math.random(), 0, 1, 0.3, 10);
+            bit.velocity.y = this.velocity.y + (ry + this.bounds.height / 2) * Game.lerp(Math.random(), 0, 1, 0.3, 10);
             bit.lifetime = Game.lerp(Math.random(), 0, 1, 2, 3);
         }
     }

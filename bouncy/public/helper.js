@@ -90,6 +90,10 @@ Game.lerp = function(value, minA, maxA, minB, maxB) {
     return (value - minA) / rangeA * rangeB + minB;
 };
 
+Game.clerp = function(value, minA, maxA, minB, maxB) {
+    return Math.max(minB, Math.min(maxB, Game.lerp(value, minA, maxA, minB, maxB)));
+}
+
 Game.plerp = function(point, rectA, rectB) {
     return new Point(Game.lerp(point.x, rectA.left(), rectA.right(), rectB.left(), rectB.right()),
                      Game.lerp(point.y, rectA.top(), rectA.bottom(), rectB.top(), rectB.bottom()));

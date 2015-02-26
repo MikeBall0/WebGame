@@ -207,9 +207,11 @@ Game.EvilSpike = function() {
 
 Game.EvilSpike.prototype = Object.create(Game.Spike.prototype);
 Game.EvilSpike.prototype.draw = function(ctx) {
-    var dPoint = new Point(this.x, this.y).minus(Game.current.guy.position);
+    var dPoint = new Point(this.x, this.y).minus(Game.current.guy.centerPoint());
+    var alpha = 1 - Math.max(0, Math.min(1, (dPoint.length() - 50) / (this.visibleDistance - 50)));
+    if (alpha == 0) return;
     ctx.save();
-    ctx.globalAlpha = 1 - Math.max(0, Math.min(1, (dPoint.length() - 50) / (this.visibleDistance - 50)));
+    ctx.globalAlpha = alpha;
     Game.Spike.prototype.draw.call(this, ctx);
     ctx.restore();
 };

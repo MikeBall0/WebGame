@@ -4,11 +4,23 @@ Game.World = function(worldObject, onassetsloaded) {
     Game.load.image(worldObject.background, worldObject.background, false, function() {
         onassetsloaded();
     });
+    Game.load.image("blockCornerTopLeft", "images/block_corner_top_left.png");
+    Game.load.image("blockCornerTopRight", "images/block_corner_top_right.png");
+    Game.load.image("blockCornerBottomLeft", "images/block_corner_bottom_left.png");
+    Game.load.image("blockCornerBottomRight", "images/block_corner_bottom_right.png");
+    Game.load.image("horizontalBorder", "images/block_outline_top_bottom.png");
+    Game.load.image("verticalBorder", "images/block_outline_left_right.png");
     this.background = worldObject.background;
     this.ground = worldObject.ground;
     this.blocks = [];
     for (var block of worldObject.blocks) {
-        this.blocks.push(new Rect(block.x, block.y, block.width, block.height));
+        var newBlock = new Rect(block.x, block.y, block.width, block.height);
+        if (block.bottomborder !== undefined) {
+            newBlock.bottomborder = block.bottomborder;
+        } else {
+            newBlock.bottomborder = true;
+        }
+        this.blocks.push(newBlock);
     }
     this.items = [];
     for (var item of worldObject.items) {
@@ -34,17 +46,12 @@ Game.World.prototype = {
         this.animationTime += dt;
     },
     draw: function(ctx) {
-        var cacheFillStyle = ctx.fillStyle;
         ctx.drawImage(Game.loaded.image[this.background], 0, 0);
-        if (Game.World.PATTERNS["groundPattern"]) {
-            ctx.fillStyle = Game.World.PATTERNS["groundPattern"];
-        } else {
-            ctx.fillStyle = "#CE7100";
-        }
-        for (var block of this.blocks) {
-            ctx.fillRect(block.x, block.y, block.width, block.height);
-        }
+        var cacheFillStyle = ctx.fillStyle;
+        this.drawBlockFills(ctx);
+        this.drawBlockOutlines(ctx);
         ctx.fillStyle = cacheFillStyle;
+
         for (var item of this.items) {
             item.draw(ctx);
         }
@@ -55,6 +62,39 @@ Game.World.prototype = {
                 if (tFrame === 0) tFrame = 2;
                 ctx.drawImage(Game.loaded.image["tutorial1_frame" + tFrame], 10, 150);
                 break;
+            }
+        }
+    },
+    drawBlockFills: function(ctx) {
+        if (Game.World.PATTERNS["groundPattern"]) {
+            ctx.fillStyle = Game.World.PATTERNS["groundPattern"];
+        } else {
+            ctx.fillStyle = "#CE7100";
+        }
+        for (var block of this.blocks) {
+            ctx.fillRect(block.x, block.y, block.width, block.height);
+        }
+    },
+    drawBlockOutlines: function(ctx) {
+        var borderWidth = 20;
+        var borderPadding = 1;
+        var borderOverlap = borderWidth - borderPadding;
+        var doubleBorderOverlap = borderOverlap * 2;
+        for (var block of this.blocks) {
+            ctx.drawImage(Game.loaded.image["horizontalBorder"], block.x + borderOverlap, block.y - borderPadding, block.width - doubleBorderOverlap, borderWidth);
+            if (block.bottomborder === undefined || block.bottomborder) {
+                ctx.drawImage(Game.loaded.image["horizontalBorder"], block.x + borderOverlap, block.y + block.height - borderOverlap, block.width - doubleBorderOverlap, borderWidth);
+                ctx.drawImage(Game.loaded.image["verticalBorder"], block.x + block.width - borderOverlap, block.y + borderOverlap, borderWidth, block.height - doubleBorderOverlap);
+                ctx.drawImage(Game.loaded.image["verticalBorder"], block.x - borderPadding, block.y + borderOverlap, borderWidth, block.height - doubleBorderOverlap);
+            } else {
+                ctx.drawImage(Game.loaded.image["verticalBorder"], block.x + block.width - borderOverlap, block.y + borderOverlap, borderWidth, block.height - borderOverlap);
+                ctx.drawImage(Game.loaded.image["verticalBorder"], block.x - borderPadding, block.y + borderOverlap, borderWidth, block.height - borderOverlap);
+            }
+            ctx.drawImage(Game.loaded.image["blockCornerTopLeft"], block.x - borderPadding, block.y - borderPadding);
+            ctx.drawImage(Game.loaded.image["blockCornerTopRight"], block.x + block.width - borderOverlap, block.y - borderPadding);
+            if (block.bottomborder === undefined || block.bottomborder) {
+                ctx.drawImage(Game.loaded.image["blockCornerBottomLeft"], block.x - borderPadding, block.y + block.height - borderOverlap);
+                ctx.drawImage(Game.loaded.image["blockCornerBottomRight"], block.x + block.width - borderOverlap, block.y + block.height - borderOverlap);
             }
         }
     },

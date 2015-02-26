@@ -1,10 +1,11 @@
 var Game = Game || {};
 
-Game.currentLevel = 3;
+Game.currentLevel = 4;
 Game.levels = ["",
                {name: "level1", unlocked: true},
                {name: "level2", unlocked: false},
-               {name: "level3", unlocked: false}];
+               {name: "level3", unlocked: false},
+               {name: "level4", unlocked: false}];
 Game.saveLevelProgress = function() {
     var i = 1;
     while (Game.levels[i].unlocked) {
