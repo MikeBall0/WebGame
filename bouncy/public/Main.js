@@ -21,6 +21,8 @@ Game.Main = function() {
     this.lastTickTime = 0;
     this.tick(0);
     this.loadLevel(Game.levels[Game.currentLevel].name);
+    this.timeDiff = 0;
+    this.totalTicks = 0;
 };
 
 Game.Main.prototype = {
@@ -36,14 +38,23 @@ Game.Main.prototype = {
         requestAnimationFrame(Game.current.tick);
     },
     update: function(dt) {
-        if (dt > 1/40) dt = 1/40;
+        if (dt > 1/10) dt = 1/10;
+        dt += this.timeDiff;
         switch (this.currentScreen) {
             case Game.Main.GAME_SCREEN: {
                 if (Game.isKeyDown[Game.SPACE]) {
                     this.restartCurrentLevel();
                 }
-                this.world.update(dt);
-                this.guy.update(dt);
+                // this game should really be deterministic
+                // this isn't optimal, but works
+                var tick20s = Math.max(1, Math.round(dt / (1 / 180)));
+                this.timeDiff = dt - tick20s / 180;
+                // console.log(dt + ", " + this.timeDiff);
+                for (; tick20s > 0; tick20s --) {
+                    this.world.update(1/180);
+                    this.guy.update(1/180);
+                    this.totalTicks ++;
+                }
                 break;
             }
             case Game.Main.LOADING_SCREEN: {

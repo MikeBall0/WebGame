@@ -52,7 +52,7 @@ Game.World.prototype = {
         switch (this.tutorial) {
             case 1: {
                 var tFrame = Math.floor(this.animationTime) % 4
-                if (tFrame == 0) tFrame = 2;
+                if (tFrame === 0) tFrame = 2;
                 ctx.drawImage(Game.loaded.image["tutorial1_frame" + tFrame], 10, 150);
                 break;
             }
@@ -65,6 +65,27 @@ Game.World.prototype = {
                 flagpole.x = itemData.x;
                 flagpole.y = itemData.y;
                 return flagpole;
+            }
+            case "spike": {
+                var spike = new Game.Spike();
+                spike.x = itemData.x;
+                spike.y = itemData.y;
+                if (itemData.orientation !== undefined) {
+                    spike.setOrientation(itemData.orientation);
+                }
+                return spike;
+            }
+            case "evilspike": {
+                var spike = new Game.EvilSpike();
+                spike.x = itemData.x;
+                spike.y = itemData.y;
+                if (itemData.orientation !== undefined) {
+                    spike.setOrientation(itemData.orientation);
+                }
+                if (itemData.visibleDistance !== undefined) {
+                    spike.visibleDistance = itemData.visibleDistance;
+                }
+                return spike;
             }
         }
     }

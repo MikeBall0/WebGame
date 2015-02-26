@@ -22,6 +22,9 @@ Game.Point.prototype = {
     },
     copy: function() {
         return new Game.Point(this.x, this.y);
+    },
+    minus: function(other) {
+        return new Game.Point(this.x - other.x, this.y - other.y);
     }
 };
 

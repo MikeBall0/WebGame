@@ -8,6 +8,8 @@ Game.Guy = function() {
     this.horizontalAcceleration = 1;
     this.started = false;
     this.dead = false;
+    this.exploded = false;
+    this.explodedBits = [];
     this.acceleration = 0;
 };
 
@@ -17,18 +19,33 @@ Game.Guy.prototype = {
     reset: function() {
         this.started = false;
         this.dead = false;
+        this.exploded = false;
         this.velocity.x = 0;
         this.velocity.y = 0;
     },
     draw: function(ctx) {
-        var guyImg = Game.loaded.image["guy"];
-        ctx.drawImage(guyImg, this.position.x - guyImg.width / 2, this.position.y + this.bounds.top() / 2 - guyImg.height / 2);
+        if (!this.exploded) {
+            var guyImg = Game.loaded.image["guy"];
+            ctx.drawImage(guyImg, this.position.x - guyImg.width / 2, this.position.y + this.bounds.top() / 2 - guyImg.height / 2);
+        } else {
+            for (var bit of this.explodedBits) {
+                bit.draw(ctx);
+            }
+        }
     },
     update: function(dt) {
         if (Game.isKeyDown[Game.RIGHT] || Game.isKeyDown[Game.LEFT]) {
             this.started = true;
         }
-        if (this.dead || !this.started) return; // don't update if pepsi
+        if (!this.started) return;
+        if (this.dead) {
+            if (this.exploded) {
+                for (var bit of this.explodedBits) {
+                    bit.update(dt);
+                }
+            }
+            return; // don't update if pepsi
+        };
         var world = Game.current.world;
 
         // update velocity
@@ -195,7 +212,68 @@ Game.Guy.prototype = {
                     world.worldComplete = true;
                     item.raise();
                 }
+            } else if (item instanceof Game.Spike) {
+                if (item.hitTest(guyBoundingBox)) {
+                    this.explode();
+                }
             }
+        }
+    },
+    explode: function() {
+        if (this.exploded) return;
+        this.dead = true;
+        this.exploded = true;
+        for (var i = 0; i < 25; i ++) {
+            if (this.explodedBits[i] === undefined) {
+                this.explodedBits[i] = new Game.Guy.ExplodedBit();
+            }
+            var bit = this.explodedBits[i];
+            var rx = Game.lerp(i % 5, 0, 4, this.bounds.left() + 5, this.bounds.right() - 5);
+            var ry = Game.lerp(Math.floor(i / 5), 0, 4, this.bounds.top() + 5, this.bounds.bottom() -5);
+            bit.position.x = this.position.x + rx;
+            bit.position.y = this.position.y + ry;
+            bit.velocity.x = this.velocity.x + rx * Game.lerp(Math.random(), 0, 1, -10, 10);
+            bit.velocity.y = this.velocity.y + (ry + this.bounds.height / 2) * Game.lerp(Math.random(), 0, 1, -10, 10);
+            bit.lifetime = Game.lerp(Math.random(), 0, 1, 2, 3);
+        }
+    }
+};
+
+Game.Guy.ExplodedBit = function() {
+    Game.load.image("explodedBit", "images/explodedGuyBit.png");
+    this.position = new Point();
+    this.velocity = new Point();
+    this.lifetime = 0;
+};
+
+Game.Guy.ExplodedBit.prototype = {
+    update: function(dt) {
+        if (this.lifetime > 0) {
+            this.position.x += this.velocity.x * dt;
+            this.position.y += this.velocity.y * dt;
+            if (this.position.x > Game.World.RIGHT) {
+                this.position.x = Game.World.RIGHT;
+                this.velocity.x *= -1;
+            } else if (this.position.x < Game.World.LEFT) {
+                this.position.x = Game.World.LEFT;
+                this.velocity.x *= -1;
+            }
+            if (this.position.y > Game.current.world.ground) {
+                this.position.y = Game.current.world.ground;
+                this.velocity.y *= -1;
+            }
+            if (this.velocity.length() > 10) {
+                this.velocity.x *= 1 - Math.min(dt * 3, 1);
+                this.velocity.y *= 1 - Math.min(dt * 3, 1);
+            }
+            this.lifetime -= dt;
+        }
+    },
+    draw: function(ctx) {
+        if (this.lifetime > 0) {
+            ctx.drawImage(Game.loaded.image["explodedBit"],
+                          this.position.x - Game.loaded.image["explodedBit"].width / 2,
+                          this.position.y - Game.loaded.image["explodedBit"].height / 2);
         }
     }
 };
