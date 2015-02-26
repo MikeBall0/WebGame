@@ -18,11 +18,13 @@ Game.Main = function() {
 
     this.currentScreen = Game.Main.LOADING_SCREEN;
     this.currentLevelData = null;
+
+    this.loadLevel(5);
+
     this.lastTickTime = 0;
-    this.tick(0);
-    this.loadLevel(Game.levels[Game.currentLevel].name);
     this.timeDiff = 0;
     this.totalTicks = 0;
+    this.tick(0);
 };
 
 Game.Main.prototype = {
@@ -83,8 +85,10 @@ Game.Main.prototype = {
         Game.isKeyDown[event.keyCode] = undefined;
     },
     loadLevel: function(level) {
+        Game.currentLevel = level;
+        var levelName = Game.levels[level].name;
         this.currentScreen = Game.Main.LOADING_SCREEN;
-        Game.load.data("level", "data/" + level + ".json", true, function() { 
+        Game.load.data("level", "data/" + levelName + ".json", true, function() { 
             var levelObject = JSON.parse(Game.loaded.data["level"]);
             Game.current.startLevel(levelObject);
         });

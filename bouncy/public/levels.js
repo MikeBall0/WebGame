@@ -1,8 +1,9 @@
 var Game = Game || {};
 
-Game.currentLevel = 4;
+Game.currentLevel = 5;
 Game.levels = ["",
                {name: "level1", unlocked: true},
+               {name: "level1.5", unlocked: false},
                {name: "level2", unlocked: false},
                {name: "level3", unlocked: false},
                {name: "level4", unlocked: false}];
