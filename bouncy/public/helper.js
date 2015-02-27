@@ -1,3 +1,5 @@
+'use strict'
+
 var Game = Game || {};
 
 Game.LEFT = 37;
@@ -6,6 +8,7 @@ Game.RIGHT = 39;
 Game.DOWN = 40;
 
 Game.SPACE = 32;
+Game.ESCAPE = 27;
 
 Game.init = function() {
     Game.canvas = document.getElementById("canvas");

@@ -1,3 +1,5 @@
+'use strict'
+
 var Game = Game || {};
 
 Game.Guy = function() {
@@ -215,6 +217,7 @@ Game.Guy.prototype = {
                 if (!world.worldComplete && item.hitTest(guyBoundingBox)) {
                     world.worldComplete = true;
                     item.raise();
+                    Game.completeLevel();
                 }
             } else if (item instanceof Game.Spike) {
                 if (item.hitTest(guyBoundingBox)) {

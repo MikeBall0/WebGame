@@ -1,29 +1,38 @@
+'use strict'
+
 var Game = Game || {};
 
 Game.isKeyDown = {};
 
 Game.Main = function() {
     Game.init();
+    
     this.ctx = Game.canvas.getContext("2d");
     window.onkeydown = this.onKeyDown;
     window.onkeyup = this.onKeyUp;
+    Game.canvas.onmousemove = this.onMouseMove;
+    Game.canvas.onmousedown = this.onMouseDown;
+    Game.canvas.onmouseup = this.onMouseUp;
 
     Game.current = this;
-
+    
+    Game.load.image("escMenuHint", "images/esc_menu_hint.png");
     this.loadingImage = document.getElementById("loading");
-
     Game.World.ConstructPatterns();
 
+    this.menu = new Game.Menu();
     this.guy = new Game.Guy();
 
-    this.currentScreen = Game.Main.LOADING_SCREEN;
+    this.currentScreen = Game.Main.MENU_SCREEN;
+    // this.currentScreen = Game.Main.LOADING_SCREEN;
+    
     this.currentLevelData = null;
+    Game.loadLevelProgress();
 
-    this.loadLevel(5);
+    // this.loadLevel(Game.currentLevel);
 
     this.lastTickTime = 0;
     this.timeDiff = 0;
-    this.totalTicks = 0;
     this.tick(0);
 };
 
@@ -41,25 +50,34 @@ Game.Main.prototype = {
     },
     update: function(dt) {
         if (dt > 1/10) dt = 1/10;
-        dt += this.timeDiff;
         switch (this.currentScreen) {
             case Game.Main.GAME_SCREEN: {
                 if (Game.isKeyDown[Game.SPACE]) {
-                    this.restartCurrentLevel();
+                    if (this.world.worldComplete) {
+                        this.loadLevel(Game.currentLevel);
+                    } else {
+                        this.restartCurrentLevel();
+                    }
+                }
+                if (Game.isKeyDown[Game.ESCAPE]) {
+                    this.currentScreen = Game.Main.MENU_SCREEN;
                 }
                 // this game should really be deterministic
                 // this isn't optimal, but works
+                dt += this.timeDiff;
                 var tick20s = Math.max(1, Math.round(dt / (1 / 180)));
                 this.timeDiff = dt - tick20s / 180;
-                // console.log(dt + ", " + this.timeDiff);
                 for (; tick20s > 0; tick20s --) {
                     this.world.update(1/180);
                     this.guy.update(1/180);
-                    this.totalTicks ++;
                 }
                 break;
             }
             case Game.Main.LOADING_SCREEN: {
+                break;
+            }
+            case Game.Main.MENU_SCREEN: {
+                this.menu.update(dt);
                 break;
             }
         }
@@ -74,7 +92,11 @@ Game.Main.prototype = {
             case Game.Main.GAME_SCREEN: {
                 this.world.draw(this.ctx);
                 this.guy.draw(this.ctx);
+                this.ctx.drawImage(Game.loaded.image["escMenuHint"], 10, 10);
                 break;
+            }
+            case Game.Main.MENU_SCREEN: {
+                this.menu.draw(this.ctx);
             }
         }
     },
@@ -84,7 +106,25 @@ Game.Main.prototype = {
     onKeyUp: function(event) {
         Game.isKeyDown[event.keyCode] = undefined;
     },
+    onMouseDown: function(event) {
+        var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+        Game.current.handleMouseEvent({position: worldPoint, type: "down"});
+    },
+    onMouseUp: function(event) {
+        var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+        Game.current.handleMouseEvent({position: worldPoint, type: "up"});
+    },
+    onMouseMove: function(event) {
+        var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+        Game.current.handleMouseEvent({position: worldPoint, type: "move"});
+    },
+    handleMouseEvent: function(mouseEvent) {
+        if (this.currentScreen === Game.Main.MENU_SCREEN) {
+            this.menu.onMouseEvent(mouseEvent);
+        }
+    },
     loadLevel: function(level) {
+        if (level < 0 || level >= Game.levels.length || !Game.levels[level].unlocked) return;
         Game.currentLevel = level;
         var levelName = Game.levels[level].name;
         this.currentScreen = Game.Main.LOADING_SCREEN;
@@ -101,6 +141,7 @@ Game.Main.prototype = {
         this.guy.position.y = levelObject.playerStart.y;
         this.guy.acceleration = levelObject.playerAcceleration;
         this.world = new Game.World(levelObject, function() {
+            Game.current.timeDiff = 0;
             Game.current.currentScreen = Game.Main.GAME_SCREEN;
         });
     },

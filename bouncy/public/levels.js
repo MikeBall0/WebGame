@@ -1,18 +1,37 @@
+'use strict'
+
 var Game = Game || {};
 
-Game.currentLevel = 5;
-Game.levels = ["",
-               {name: "level1", unlocked: true},
-               {name: "level1.5", unlocked: false},
-               {name: "level2", unlocked: false},
-               {name: "level3", unlocked: false},
-               {name: "level4", unlocked: false}];
-Game.saveLevelProgress = function() {
-    var i = 1;
-    while (Game.levels[i].unlocked) {
-        i ++;
+Game.LevelData = function(name, unlocked, beaten) {
+    this.name = name;
+    this.unlocked = !!unlocked;
+    this.beaten = !!beaten;
+};
+
+Game.currentLevel = 0;
+Game.levels = [
+                new Game.LevelData("level1", true),
+                new Game.LevelData("level1.5"),
+                new Game.LevelData("level2"),
+                new Game.LevelData("level3"),
+                new Game.LevelData("level4"),
+              ];
+
+Game.completeLevel = function() {
+    Game.levels[Game.currentLevel].beaten = true;
+    if (Game.levels.length > Game.currentLevel + 1) {
+        Game.currentLevel ++;
+        Game.levels[Game.currentLevel].unlocked = true;
+        Game.saveLevelProgress();
     }
-    document.cookie = "_level=" + (i-1);
+}
+
+Game.saveLevelProgress = function() {
+    var leveldata = [];
+    for (var level of Game.levels) {
+        leveldata.push({unlocked: level.unlocked, beaten: level.beaten});
+    }
+    document.cookie = "_leveldata=" + JSON.stringify(leveldata);
 };
 
 Game.loadLevelProgress = function() {
@@ -21,10 +40,14 @@ Game.loadLevelProgress = function() {
         var parts = value.split("; " + name + "=");
         if (parts.length == 2) return parts.pop().split(";").shift();
     };
-    var level = getCookie("_level");
-    if (level !== undefined) {
-        for (var i = parseInt(level); i > 0; i --) {
-            Game.levels[i].unlocked = true;
-        }
+    var leveldata = getCookie("_leveldata");
+    if (leveldata !== undefined) {
+        try {
+            leveldata = JSON.parse(leveldata);
+            for (var i = 0; i < leveldata.length && i < Game.levels.length; i ++) {
+                Game.levels[i].unlocked = leveldata[i].unlocked;
+                Game.levels[i].beaten = leveldata[i].beaten;
+            }
+        } catch(e) {}
     }
 };

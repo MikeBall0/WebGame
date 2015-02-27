@@ -1,3 +1,5 @@
+'use strict'
+
 var Game = Game || {};
 
 Game.loaded = {
@@ -13,11 +15,13 @@ Game.Loader.prototype = {
     image: function(name, source, force, onload) {
         if (Game.loaded.image[name] && !force) {
             if (onload) onload();
+            return Game.loaded.image[name];
         } else {
             var loadingImage = new Image();
             loadingImage.onload = onload;
             loadingImage.src = source;
             Game.loaded.image[name] = loadingImage;
+            return loadingImage;
         }
     },
     data: function(name, source, force, onload) {

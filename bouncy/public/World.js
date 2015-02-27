@@ -1,3 +1,5 @@
+'use strict'
+
 var Game = Game || {};
 
 Game.World = function(worldObject, onassetsloaded) {
