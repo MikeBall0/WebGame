@@ -15,7 +15,8 @@ Game.World = function(worldObject, onassetsloaded) {
     this.background = worldObject.background;
     this.ground = worldObject.ground;
     this.blocks = [];
-    for (var block of worldObject.blocks) {
+    for (var i = 0; i < worldObject.blocks.length; i ++) {
+        var block = worldObject.blocks[i];
         var newBlock = new Rect(block.x, block.y, block.width, block.height);
         if (block.bottomborder !== undefined) {
             newBlock.bottomborder = block.bottomborder;
@@ -25,7 +26,8 @@ Game.World = function(worldObject, onassetsloaded) {
         this.blocks.push(newBlock);
     }
     this.items = [];
-    for (var item of worldObject.items) {
+    for (var i = 0; i < worldObject.items.length; i ++) {
+        var item = worldObject.items[i];
         this.items.push(this.createItem(item));
     }
     this.gravity = worldObject.gravity;
@@ -54,8 +56,8 @@ Game.World.prototype = {
         this.drawBlockOutlines(ctx);
         ctx.fillStyle = cacheFillStyle;
 
-        for (var item of this.items) {
-            item.draw(ctx);
+        for (var i = 0; i < this.items.length; i ++) {
+            this.items[i].draw(ctx);
         }
 
         switch (this.tutorial) {
@@ -73,7 +75,8 @@ Game.World.prototype = {
         } else {
             ctx.fillStyle = "#CE7100";
         }
-        for (var block of this.blocks) {
+        for (var i = 0; i < this.blocks.length; i ++) {
+            var block = this.blocks[i];
             ctx.fillRect(block.x, block.y, block.width, block.height);
         }
     },
@@ -82,7 +85,8 @@ Game.World.prototype = {
         var borderPadding = 1;
         var borderOverlap = borderWidth - borderPadding;
         var doubleBorderOverlap = borderOverlap * 2;
-        for (var block of this.blocks) {
+        for (var i = 0; i < this.blocks.length; i ++) {
+            var block = this.blocks[i];
             ctx.drawImage(Game.loaded.image["horizontalBorder"], block.x + borderOverlap, block.y - borderPadding, block.width - doubleBorderOverlap, borderWidth);
             if (block.bottomborder === undefined || block.bottomborder) {
                 ctx.drawImage(Game.loaded.image["horizontalBorder"], block.x + borderOverlap, block.y + block.height - borderOverlap, block.width - doubleBorderOverlap, borderWidth);

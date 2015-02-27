@@ -54,6 +54,7 @@ Game.Main.prototype = {
             case Game.Main.GAME_SCREEN: {
                 if (Game.isKeyDown[Game.SPACE]) {
                     if (this.world.worldComplete) {
+                        Game.incrementLevelIfAvailable();
                         this.loadLevel(Game.currentLevel);
                     } else {
                         this.restartCurrentLevel();
@@ -93,12 +94,21 @@ Game.Main.prototype = {
                 this.world.draw(this.ctx);
                 this.guy.draw(this.ctx);
                 this.ctx.drawImage(Game.loaded.image["escMenuHint"], 10, 10);
+                this.drawLevelName();
                 break;
             }
             case Game.Main.MENU_SCREEN: {
                 this.menu.draw(this.ctx);
             }
         }
+    },
+    drawLevelName: function() {
+        this.ctx.save();
+        this.ctx.font = "15pt Verdana";
+        this.ctx.textAlign = "right";
+        this.ctx.fillStyle = "black";
+        this.ctx.fillText("LEVEL " + (Game.currentLevel + 1), 795, 22);
+        this.ctx.restore();
     },
     onKeyDown: function(event) {
         Game.isKeyDown[event.keyCode] = true;
@@ -107,15 +117,15 @@ Game.Main.prototype = {
         Game.isKeyDown[event.keyCode] = undefined;
     },
     onMouseDown: function(event) {
-        var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+        var worldPoint = Game.canvasPointToWorld(new Point(event.pageX - Game.canvas.offsetLeft, event.pageY - Game.canvas.offsetTop));
         Game.current.handleMouseEvent({position: worldPoint, type: "down"});
     },
     onMouseUp: function(event) {
-        var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+        var worldPoint = Game.canvasPointToWorld(new Point(event.pageX - Game.canvas.offsetLeft, event.pageY - Game.canvas.offsetTop));
         Game.current.handleMouseEvent({position: worldPoint, type: "up"});
     },
     onMouseMove: function(event) {
-        var worldPoint = Game.canvasPointToWorld(new Point(event.layerX, event.layerY));
+        var worldPoint = Game.canvasPointToWorld(new Point(event.pageX - Game.canvas.offsetLeft, event.pageY - Game.canvas.offsetTop));
         Game.current.handleMouseEvent({position: worldPoint, type: "move"});
     },
     handleMouseEvent: function(mouseEvent) {

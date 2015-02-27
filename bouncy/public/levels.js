@@ -20,15 +20,21 @@ Game.levels = [
 Game.completeLevel = function() {
     Game.levels[Game.currentLevel].beaten = true;
     if (Game.levels.length > Game.currentLevel + 1) {
-        Game.currentLevel ++;
-        Game.levels[Game.currentLevel].unlocked = true;
-        Game.saveLevelProgress();
+        Game.levels[Game.currentLevel + 1].unlocked = true;
     }
-}
+    Game.saveLevelProgress();
+};
+
+Game.incrementLevelIfAvailable = function() {
+    if (Game.levels.length > Game.currentLevel + 1 && Game.levels[Game.currentLevel + 1].unlocked) {
+        Game.currentLevel ++;
+    }
+};
 
 Game.saveLevelProgress = function() {
     var leveldata = [];
-    for (var level of Game.levels) {
+    for (var i = 0; i < Game.levels.length; i ++) {
+        var level = Game.levels[i];
         leveldata.push({unlocked: level.unlocked, beaten: level.beaten});
     }
     document.cookie = "_leveldata=" + JSON.stringify(leveldata);

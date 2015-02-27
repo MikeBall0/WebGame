@@ -19,7 +19,8 @@ Game.Menu.prototype = {
 
     },
     draw: function(ctx) {
-        ctx.font = "45pt Cooper";
+        ctx.save();
+        ctx.font = "35pt Verdana";
         ctx.textAlign = "center";
         ctx.fillStyle = "black";
         ctx.drawImage(Game.loaded.image["menuBackground"], 0, 0);
@@ -29,8 +30,9 @@ Game.Menu.prototype = {
             var x = (i % this.maxColumns) * (this.unlockedImg.width + this.levelButtonXPadding) + this.levelButtonXOffset;
             var y = Math.floor(i / this.maxColumns) * (this.unlockedImg.height + this.levelButtonYPadding) + this.levelButtonYOffset;
             ctx.drawImage(nodeImg, x, y);
-            ctx.fillText(i, x + this.unlockedImg.width / 2, y + this.unlockedImg.height - 14);
+            ctx.fillText((i + 1), x + this.unlockedImg.width / 2, y + this.unlockedImg.height - 14);
         }
+        ctx.restore();
     },
     onMouseEvent: function(me) {
         if (me.type === "up") {

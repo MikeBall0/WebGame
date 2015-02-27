@@ -31,7 +31,8 @@ Game.Guy.prototype = {
             var guyImg = Game.loaded.image["guy"];
             ctx.drawImage(guyImg, this.position.x - guyImg.width / 2, this.position.y + this.bounds.top() / 2 - guyImg.height / 2);
         } else {
-            for (var bit of this.explodedBits) {
+            for (var i = 0; i < this.explodedBits.length; i ++) {
+                var bit = this.explodedBits[i];
                 bit.draw(ctx);
             }
         }
@@ -43,7 +44,8 @@ Game.Guy.prototype = {
         if (!this.started) return;
         if (this.dead) {
             if (this.exploded) {
-                for (var bit of this.explodedBits) {
+                for (var i = 0; i < this.explodedBits.length; i ++) {
+                    var bit = this.explodedBits[i];
                     bit.update(dt);
                 }
             }
@@ -72,7 +74,8 @@ Game.Guy.prototype = {
             var stepVelocity = new Point(this.velocity.x * dt, this.velocity.y * dt);
             var broadphaseBox = this.getBroadphaseBox(stepVelocity);
             var collision = this.getWorldBoundsCollision(stepVelocity);
-            for (var block of world.blocks) {
+            for (var i = 0; i < world.blocks.length; i ++) {
+                var block = world.blocks[i];
                 if (broadphaseBox.hitTest(block)) {
                     var blockColl = this.sweptTest(block, stepVelocity);
                     if (blockColl.at < collision.at) {
@@ -212,7 +215,8 @@ Game.Guy.prototype = {
     interactWithWorldItems: function() {
         var world = Game.current.world;
         var guyBoundingBox = new Rect(this.left(), this.top(), this.bounds.width, this.bounds.height);
-        for (var item of world.items) {
+        for (var i = 0; i < world.items.length; i ++) {
+            var item = world.items[i];
             if (item instanceof Game.Flagpole) {
                 if (!world.worldComplete && item.hitTest(guyBoundingBox)) {
                     world.worldComplete = true;
